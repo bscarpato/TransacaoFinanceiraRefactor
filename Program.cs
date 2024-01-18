@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
-//Obs: Voce é livre para implementar na linguagem de sua preferência, desde que respeite as funcionalidades e saídas existentes, além de aplicar os conceitos solicitados.
-
 namespace TransacaoFinanceira
 {
     class Program
@@ -12,95 +10,163 @@ namespace TransacaoFinanceira
 
         static void Main(string[] args)
         {
-            var TRANSACOES = new[] { new {correlation_id= 1,datetime="09/09/2023 14:15:00", conta_origem= 938485762, conta_destino= 2147483649, VALOR= 150},
-                                     new {correlation_id= 2,datetime="09/09/2023 14:15:05", conta_origem= 2147483649, conta_destino= 210385733, VALOR= 149},
-                                     new {correlation_id= 3,datetime="09/09/2023 14:15:29", conta_origem= 347586970, conta_destino= 238596054, VALOR= 1100},
-                                     new {correlation_id= 4,datetime="09/09/2023 14:17:00", conta_origem= 675869708, conta_destino= 210385733, VALOR= 5300},
-                                     new {correlation_id= 5,datetime="09/09/2023 14:18:00", conta_origem= 238596054, conta_destino= 674038564, VALOR= 1489},
-                                     new {correlation_id= 6,datetime="09/09/2023 14:18:20", conta_origem= 573659065, conta_destino= 563856300, VALOR= 49},
-                                     new {correlation_id= 7,datetime="09/09/2023 14:19:00", conta_origem= 938485762, conta_destino= 2147483649, VALOR= 44},
-                                     new {correlation_id= 8,datetime="09/09/2023 14:19:01", conta_origem= 573659065, conta_destino= 675869708, VALOR= 150},
+            var transacoes = new[] {
+                                    new Transacao { CorrelationId= 1,DateTime="09/09/2023 14:15:00", ContaOrigem= 938485762, ContaDestino= 2147483649, Valor= 150},
+                                    new Transacao { CorrelationId= 2,DateTime="09/09/2023 14:15:05", ContaOrigem= 2147483649, ContaDestino= 210385733, Valor= 149},
+                                    new Transacao { CorrelationId= 3,DateTime="09/09/2023 14:15:29", ContaOrigem= 347586970, ContaDestino= 238596054, Valor= 1100},
+                                    new Transacao { CorrelationId= 4,DateTime="09/09/2023 14:17:00", ContaOrigem= 675869708, ContaDestino= 210385733, Valor= 5300},
+                                    new Transacao { CorrelationId= 5,DateTime="09/09/2023 14:18:00", ContaOrigem= 238596054, ContaDestino= 674038564, Valor= 1489},
+                                    new Transacao { CorrelationId= 6,DateTime="09/09/2023 14:18:20", ContaOrigem= 573659065, ContaDestino= 563856300, Valor= 49},
+                                    new Transacao { CorrelationId= 7,DateTime="09/09/2023 14:19:00", ContaOrigem= 938485762, ContaDestino= 2147483649, Valor= 44},
+                                    new Transacao { CorrelationId= 8,DateTime="09/09/2023 14:19:01", ContaOrigem= 573659065, ContaDestino= 675869708, Valor= 150},
+                                    new Transacao { CorrelationId= 9,DateTime="09/09/2023 14:19:01", ContaOrigem= 573659065, ContaDestino= 573659065, Valor= 10},
+                                    new Transacao { CorrelationId= 9,DateTime="09/09/2023 14:19:01", ContaOrigem= 573659065, ContaDestino= 573659065, Valor= 10},
 
             };
-            executarTransacaoFinanceira executor = new executarTransacaoFinanceira();
-            Parallel.ForEach(TRANSACOES, item =>
+
+
+            ExecutarTransacaoFinanceira executor = new ExecutarTransacaoFinanceira();
+            Parallel.ForEach(transacoes, item =>
             {
-                executor.transferir(item.correlation_id, item.conta_origem, item.conta_destino, item.VALOR);
+                executor.Transferir(item.CorrelationId, item.ContaOrigem, item.ContaDestino, item.Valor);
             });
 
         }
     }
 
-    class executarTransacaoFinanceira : acessoDados
+    class Transacao
     {
-        public void transferir(int correlation_id, int conta_origem, int conta_destino, decimal valor)
-        {
-            contas_saldo conta_saldo_origem = getSaldo<contas_saldo>(conta_origem);
-            if (conta_saldo_origem.saldo < valor)
-            {
-                Console.WriteLine("Transacao numero {0 } foi cancelada por falta de saldo", correlation_id);
+        public int CorrelationId { get; set; }
+        public string DateTime { get; set; }
+        public long ContaOrigem { get; set; }
+        public long ContaDestino { get; set; }
+        public decimal Valor { get; set; }
+    }
 
-            }
-            else
+    class ExecutarTransacaoFinanceira : AcessoDados
+    {
+        public void Transferir(int correlationId, long contaOrigem, long contaDestino, decimal valor)
+        {
+            if (contaOrigem <= 0 || contaDestino <= 0)
             {
-                contas_saldo conta_saldo_destino = getSaldo<contas_saldo>(conta_destino);
-                conta_saldo_origem.saldo -= valor;
-                conta_saldo_destino.saldo += valor;
-                Console.WriteLine("Transacao numero {0} foi efetivada com sucesso! Novos saldos: Conta Origem:{1} | Conta Destino: {3}", correlation_id, conta_saldo_origem.saldo, conta_saldo_destino.saldo);
+                Console.WriteLine($"Transacao numero {correlationId} é inválida devido a contas de origem/destino inválidas.");
+                return;
+            }
+
+            if (valor <= 0)
+            {
+                Console.WriteLine($"Transacao numero {correlationId} é inválida devido a um valor de transação negativo ou zero.");
+                return;
+            }
+
+            lock (lockObj)
+            {
+                if (TransacaoFoiProcessada(correlationId))
+                {
+                    Console.WriteLine($"Transacao numero {correlationId} já foi processada anteriormente.");
+                    return;
+                }
+
+                ContaSaldo contaSaldoOrigem = GetSaldoById(contaOrigem);
+                if (contaSaldoOrigem == null)
+                {
+                    Console.WriteLine($"Transacao numero {correlationId} foi cancelada porque a conta de origem não foi encontrada.");
+                    return;
+                }
+
+                if (contaSaldoOrigem.Saldo < valor)
+                {
+                    Console.WriteLine($"Transacao numero {correlationId} foi cancelada por falta de saldo.");
+                    return;
+                }
+
+                ContaSaldo contaSaldoDestino = GetSaldoById(contaDestino);
+                if (contaSaldoDestino == null)
+                {
+                    Console.WriteLine($"Transacao numero {correlationId} foi cancelada porque a conta de destino não foi encontrada.");
+                    return;
+                }
+
+                contaSaldoOrigem.Saldo -= valor;
+                contaSaldoDestino.Saldo += valor;
+
+                AtualizarSaldo(contaSaldoOrigem);
+                AtualizarSaldo(contaSaldoDestino);
+
+                Console.WriteLine($"Transacao numero {correlationId} foi efetivada com sucesso! Novos saldos: Conta Origem: {contaSaldoOrigem.Saldo} | Conta Destino: {contaSaldoDestino.Saldo}");
             }
         }
     }
-    class contas_saldo
+    class ContaSaldo
     {
-        public contas_saldo(int conta, decimal valor)
+        public long Conta { get; set; }
+        public decimal Saldo { get; set; }
+
+        public ContaSaldo(long conta, decimal saldo)
         {
-            this.conta = conta;
-            this.saldo = valor;
+            Conta = conta;
+            Saldo = saldo;
         }
-        public int conta { get; set; }
-        public decimal saldo { get; set; }
     }
-    class acessoDados
+
+
+    class AcessoDados
     {
-        Dictionary<int, decimal> SALDOS { get; set; }
-        private List<contas_saldo> TABELA_SALDOS;
-        public acessoDados()
+        protected static readonly object lockObj = new();
+        private List<ContaSaldo> tabelaSaldos;
+        private HashSet<int> transacoesProcessadas;
+
+        public AcessoDados()
         {
-            TABELA_SALDOS = new List<contas_saldo>();
-            TABELA_SALDOS.Add(new contas_saldo(938485762, 180));
-            TABELA_SALDOS.Add(new contas_saldo(347586970, 1200));
-            TABELA_SALDOS.Add(new contas_saldo(2147483649, 0));
-            TABELA_SALDOS.Add(new contas_saldo(675869708, 4900));
-            TABELA_SALDOS.Add(new contas_saldo(238596054, 478));
-            TABELA_SALDOS.Add(new contas_saldo(573659065, 787));
-            TABELA_SALDOS.Add(new contas_saldo(210385733, 10));
-            TABELA_SALDOS.Add(new contas_saldo(674038564, 400));
-            TABELA_SALDOS.Add(new contas_saldo(563856300, 1200));
+            tabelaSaldos = new List<ContaSaldo>()
+            {
+                new ContaSaldo(938485762, 180),
+                new ContaSaldo(347586970, 1200),
+                new ContaSaldo(2147483649, 0),
+                new ContaSaldo(675869708, 4900),
+                new ContaSaldo(238596054, 478),
+                new ContaSaldo(573659065, 787),
+                new ContaSaldo(210385733, 10),
+                new ContaSaldo(674038564, 400),
+                new ContaSaldo(563856300, 1200)
+            };
 
-
-            SALDOS = new Dictionary<int, decimal>();
-            this.SALDOS.Add(938485762, 180);
+            transacoesProcessadas = new HashSet<int>();
 
         }
-        public T getSaldo<T>(int id)
+        public ContaSaldo GetSaldoById(long id)
         {
-            return (T)Convert.ChangeType(TABELA_SALDOS.Find(x => x.conta == id), typeof(T));
+            return tabelaSaldos.Find(x => x.Conta == id);
         }
-        public bool atualizar<T>(T dado)
+
+
+        public void AtualizarSaldo(ContaSaldo contaSaldo)
         {
             try
             {
-                contas_saldo item = (dado as contas_saldo);
-                TABELA_SALDOS.RemoveAll(x => x.conta == item.conta);
-                TABELA_SALDOS.Add(dado as contas_saldo);
-                return true;
+                lock (lockObj)
+                {
+                    tabelaSaldos.RemoveAll(x => x.Conta == contaSaldo.Conta);
+                    tabelaSaldos.Add(contaSaldo);
+                }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
+            }
+        }
+
+        public bool TransacaoFoiProcessada(int correlationId)
+        {
+            lock (lockObj)
+            {
+                if (transacoesProcessadas.Contains(correlationId))
+                {
+                    return true;
+                }
+                transacoesProcessadas.Add(correlationId);
                 return false;
             }
-
         }
 
     }
