@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 
@@ -42,10 +43,31 @@ namespace TransacaoFinanceira
                 };
 
 
-                Parallel.ForEach(transacoes, item =>
+                try
                 {
-                    executor.Transferir(item.CorrelationId, item.ContaOrigem, item.ContaDestino, item.Valor);
-                });
+                    Parallel.ForEach(transacoes, item =>
+                    {
+                        try
+                        {
+                            executor.Transferir(item.CorrelationId, item.ContaOrigem, item.ContaDestino, item.Valor);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Erro ao processar a transação {item.CorrelationId}: {ex.Message}");
+                        }
+                    });
+                }
+                catch (AggregateException ae)
+                {
+                    foreach (var ex in ae.InnerExceptions)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro inesperado: {ex.Message}");
+                }
             }
 
         }

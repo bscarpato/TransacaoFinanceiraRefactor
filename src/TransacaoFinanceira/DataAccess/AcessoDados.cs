@@ -1,6 +1,7 @@
 
 using System.Collections.Generic;
 using System;
+using System.ComponentModel;
 
 public class AcessoDados : IAcessoDados
 {
@@ -34,17 +35,10 @@ public class AcessoDados : IAcessoDados
 
     public void AtualizarSaldo(ContaSaldo contaSaldo)
     {
-        try
+        lock (LockObj)
         {
-            lock (LockObj)
-            {
-                tabelaSaldos.RemoveAll(x => x.Conta == contaSaldo.Conta);
-                tabelaSaldos.Add(contaSaldo);
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
+            tabelaSaldos.RemoveAll(x => x.Conta == contaSaldo.Conta);
+            tabelaSaldos.Add(contaSaldo);
         }
     }
 
