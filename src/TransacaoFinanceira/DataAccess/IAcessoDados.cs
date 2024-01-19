@@ -1,4 +1,4 @@
-﻿internal interface IAcessoDados
+﻿public interface IAcessoDados
 {
     void AtualizarSaldo(ContaSaldo contaSaldo);
     ContaSaldo GetSaldoById(long id);

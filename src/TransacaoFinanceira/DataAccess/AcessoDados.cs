@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System;
 
-class AcessoDados : IAcessoDados
+public class AcessoDados : IAcessoDados
 {
     public object LockObj { get; } = new object();
     private List<ContaSaldo> tabelaSaldos;

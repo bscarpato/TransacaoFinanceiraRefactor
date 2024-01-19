@@ -1,4 +1,4 @@
-class ContaSaldo
+public class ContaSaldo
 {
     public long Conta { get; set; }
     public decimal Saldo { get; set; }

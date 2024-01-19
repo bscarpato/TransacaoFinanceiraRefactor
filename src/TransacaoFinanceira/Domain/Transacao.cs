@@ -1,4 +1,4 @@
-class Transacao
+public class Transacao
 {
     public int CorrelationId { get; set; }
     public string DateTime { get; set; }

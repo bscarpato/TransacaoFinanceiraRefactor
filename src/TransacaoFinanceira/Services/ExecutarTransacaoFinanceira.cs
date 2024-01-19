@@ -1,6 +1,6 @@
 using System;
 
-class ExecutarTransacaoFinanceira : IExecutarTransacaoFinanceira
+public class ExecutarTransacaoFinanceira : IExecutarTransacaoFinanceira
 {
     private readonly IAcessoDados _acessoDados;
 
