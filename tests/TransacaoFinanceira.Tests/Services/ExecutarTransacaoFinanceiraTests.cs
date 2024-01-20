@@ -20,6 +20,8 @@ namespace TransacaoFinanceira.Tests.Services
 
             // Assert
             acessoDadosMock.Verify(ad => ad.GetSaldoById(contaInexistenteId), Times.Once);
+            acessoDadosMock.Verify(ad => ad.AtualizarSaldo(It.IsAny<ContaSaldo>()), Times.Never);
+            acessoDadosMock.Verify(ad => ad.TransacaoFoiProcessada(It.IsAny<int>()), Times.Once);
 
         }
 
@@ -43,6 +45,7 @@ namespace TransacaoFinanceira.Tests.Services
             // Assert
             acessoDadosMock.Verify(ad => ad.GetSaldoById(It.IsAny<long>()), Times.Never);
             acessoDadosMock.Verify(ad => ad.AtualizarSaldo(It.IsAny<ContaSaldo>()), Times.Never);
+            acessoDadosMock.Verify(ad => ad.TransacaoFoiProcessada(It.IsAny<int>()), Times.Never);
         }
 
 
@@ -65,6 +68,7 @@ namespace TransacaoFinanceira.Tests.Services
             // Assert
             acessoDadosMock.Verify(ad => ad.GetSaldoById(It.IsAny<long>()), Times.Never);
             acessoDadosMock.Verify(ad => ad.AtualizarSaldo(It.IsAny<ContaSaldo>()), Times.Never);
+            acessoDadosMock.Verify(ad => ad.TransacaoFoiProcessada(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
@@ -88,6 +92,7 @@ namespace TransacaoFinanceira.Tests.Services
             // Assert
             acessoDadosMock.Verify(ad => ad.GetSaldoById(contaOrigem), Times.Once);
             acessoDadosMock.Verify(ad => ad.AtualizarSaldo(It.IsAny<ContaSaldo>()), Times.Never);
+            acessoDadosMock.Verify(ad => ad.TransacaoFoiProcessada(It.IsAny<int>()), Times.Once);
         }
 
         [Fact]
@@ -114,6 +119,7 @@ namespace TransacaoFinanceira.Tests.Services
             acessoDadosMock.Verify(ad => ad.GetSaldoById(contaDestino.Conta), Times.Once);
             acessoDadosMock.Verify(ad => ad.AtualizarSaldo(It.Is<ContaSaldo>(cs => cs.Conta == contaOrigem.Conta && cs.Saldo == 100)), Times.Once);
             acessoDadosMock.Verify(ad => ad.AtualizarSaldo(It.Is<ContaSaldo>(cs => cs.Conta == contaDestino.Conta && cs.Saldo == 200)), Times.Once);
+            acessoDadosMock.Verify(ad => ad.TransacaoFoiProcessada(It.IsAny<int>()), Times.Once);
         }
 
         [Fact]
