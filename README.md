@@ -34,27 +34,31 @@ Foram aplicados vários padrões de design para resolver problemas comuns, sendo
 
 ### Princípios SOLID
 
-1. Single Responsibility Principle (SRP) - Princípio da Responsabilidade Única
+- Single Responsibility Principle (SRP) - Princípio da Responsabilidade Única
 
-Classe ExecutarTransacaoFinanceira: Responsável apenas por executar a lógica de negócios das transações financeiras, como verificar a existência de contas, validar o saldo e realizar transferências.
-Classe AcessoDados: Encarregada de interagir com o armazenamento de dados, como recuperar e atualizar saldos de contas e verificar transações processadas.
+Classe ExecutarTransacaoFinanceira: Responsável apenas por executar a lógica de negócios das transações financeiras, como verificar a existência de contas, validar o saldo e realizar transferências.  
+Classe AcessoDados: Encarregada de interagir com o armazenamento de dados, como recuperar e atualizar saldos de contas e verificar transações processadas.  
 Ao separar a lógica de negócios da lógica de acesso a dados, garantimos que cada classe tenha uma única responsabilidade.
 
-2. Open/Closed Principle (OCP) - Princípio Aberto/Fechado
+- Open/Closed Principle (OCP) - Princípio Aberto/Fechado
 
-Interfaces como IAcessoDados e IExecutarTransacaoFinanceira: Essas interfaces permitem que o código seja aberto para extensão, mas fechado para modificação. Facilita a introdução de novas maneiras de acessar dados (talvez mudando de um banco de dados em memória para um banco de dados SQL), podendo criar uma nova implementação de IAcessoDados sem alterar as classes que dependem dessa interface.
+Interfaces como IAcessoDados e IExecutarTransacaoFinanceira: Essas interfaces permitem que o código seja aberto para extensão, mas fechado para modificação.  
+Facilita a introdução de novas maneiras de acessar dados (talvez mudando de um banco de dados em memória para um banco de dados SQL), podendo criar uma nova implementação de IAcessoDados sem alterar as classes que dependem dessa interface.
 
-3. Liskov Substitution Principle (LSP) - Princípio da Substituição de Liskov
+- Liskov Substitution Principle (LSP) - Princípio da Substituição de Liskov
 
-Ao usar interfaces como IAcessoDados, garantimos que qualquer implementação dessa interface possa ser substituída por outra sem afetar o comportamento do sistema. Isso é particularmente útil em testes, onde podemos substituir a implementação real por uma versão mock ou stub para testar o comportamento da classe ExecutarTransacaoFinanceira.
+Ao usar interfaces como IAcessoDados, garantimos que qualquer implementação dessa interface possa ser substituída por outra sem afetar o comportamento do sistema.  
+Isso é particularmente útil em testes, onde podemos substituir a implementação real por uma versão mock ou stub para testar o comportamento da classe ExecutarTransacaoFinanceira.
 
-4. Interface Segregation Principle (ISP) - Princípio da Segregação de Interface
+- Interface Segregation Principle (ISP) - Princípio da Segregação de Interface
 
-Foram criadas interfaces específicas e enxutas para o sistema. Por exemplo, IAcessoDados não deve ter métodos desnecessários que não estão relacionados ao acesso a dados. Se tivermos diferentes tipos de operações de dados, podemos dividir essa interface em interfaces menores e mais específicas.
+Foram criadas interfaces específicas e enxutas para o sistema. Por exemplo, IAcessoDados não deve ter métodos desnecessários que não estão relacionados ao acesso a dados. 
+Se tivermos diferentes tipos de operações de dados, podemos dividir essa interface em interfaces menores e mais específicas.
 
-5. Dependency Inversion Principle (DIP) - Princípio da Inversão de Dependência
+- Dependency Inversion Principle (DIP) - Princípio da Inversão de Dependência
 
-Injeção de Dependência: No método Main e na classe ExecutarTransacaoFinanceira, utilizamos a injeção de dependência para fornecer as dependências (IAcessoDados). Isso reduz o acoplamento entre as classes e torna o código mais modular e testável.
+Injeção de Dependência: No método Main e na classe ExecutarTransacaoFinanceira, utilizamos a injeção de dependência para fornecer as dependências (IAcessoDados). 
+Isso reduz o acoplamento entre as classes e torna o código mais modular e testável.
 
 ### Código e Manutenção
 
@@ -64,5 +68,5 @@ Injeção de Dependência: No método Main e na classe ExecutarTransacaoFinancei
 
 ### Testes Unitários
 
-O projeto foi estruturado para permitir testes isolados de componentes, assegurando que cada parte funcione corretamente de forma independente.
+O projeto foi estruturado para permitir testes isolados de componentes, assegurando que cada parte funcione corretamente de forma independente.  
 Foram implementados testes unitários abrangentes, utilizando um framework de mocking para simular dependências externas. Esses testes cobriram casos de uso críticos, como validação diversas, processamento de transações e manutenção do estado das transações processadas, garantindo que a lógica de negócios funcionasse como esperado em diferentes cenários.
